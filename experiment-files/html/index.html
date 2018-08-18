@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+  <head>
+    <title>My experiment</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="./jspsych-5.0.3/jspsych.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-survey-likert.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-text.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-single-stim.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-call-function.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDquestion.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDnews.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDbias-rating.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDsurvey.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDrandom-code.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDinstructions.js"></script>
+    <script src="./jspsych-5.0.3/plugins/jspsych-AJDseparator.js"></script>
+    <link rel="stylesheet" href="./jspsych-5.0.3/css/jspsych.css"></link>
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/themes/flick/jquery-ui.min.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+      <div id="jspsych-target"></div>
+  </body>
+
+  
+  <script>
+
+    /* FUNCTIONS */
+    /* POST data to server to store in DB */
+    function saveData(data, randomCode) {
+       $.post('../cgi/online_questions/submit.cgi', data + "\n" + randomCode)
+       .done(function(data){
+          console.log(data);
+       })
+       .success(function(){
+        console.log("success");
+       })
+       .fail(function(xhr, status, error){
+          console.log(xhr);
+          console.log(status);
+          console.log(error);
+          console.log(xhr.responseText)
+       });
+    };
+
+    /* Generate a random string for mturk */
+    function stringGen(len){
+      var text = " ";
+
+      var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+      for( var i=0; i < len; i++ )
+          text += charset.charAt(Math.floor(Math.random() * charset.length));
+
+      return text;
+    };
+
+    var incrementCurrentQuestion = function(){
+      currentQuestion++;
+    };
+
+    var getQuestion = function(){
+      return questions[currentQuestion];
+    };
+
+    var getCurrentQuestionID = function() {
+      return currentQuestion;
+    };
+
+    var getRandomCode = function() {
+        return randomCode;
+    };
+
+    var getResponseFavour = function () {
+      if (responseFavour >= 50){
+        return true;
+      }
+      return false;
+    };
+
+
+    /* VARIABLES */
+    var currentQuestion = 0;
+    var responseFavour;
+    var timeline = [];
+    var randomCode = stringGen(8);
+
+    /* BLOCKS */
+
+    var instruction_block_part1 = {
+      type: 'AJDinstructions',
+      part: 1,
+      show_clickable_nav: true
+    };
+
+    var instruction_block_part2 = {
+      type: 'AJDinstructions',
+      part: 2,
+      show_clickable_nav: true
+    };
+
+    var instruction_block_part3 = {
+      type: 'AJDinstructions',
+      part: 3,
+      show_clickable_nav: true
+    };
+
+    /* Define SPQ block */
+    
+
+
+    var lotr_opts = ["I strongly agree", "I agree","I neither agree nor disagree","I disagree","I strongly disagree"];
+      var lotr_opts_arr = [];
+      lotr_index = 0;
+
+    while (lotr_index!=10){
+      lotr_opts_arr.push(lotr_opts);
+      lotr_index+=1;
+    }
+
+    var LOTR_block =  {
+      type: 'AJDsurvey',
+      questions: ["In uncertain times, I usually expect the best.","It's easy for me to relax.","If something can go wrong for me, it will.","I'm always optimistic about my future.","I enjoy my friends a lot.","It's important for me to keep busy.","I hardly ever expect things to go my way.","I don't get upset too easily.","I rarely count on good things happening to me.","Overall, I expect more good things to happen to me than bad."],
+      options: lotr_opts_arr,
+      horizontal: true,
+      preamble: 'Please complete the questions below'
+    };
+
+var i 
+var panas_opts = [" Very Slightly or Not at All ", "A Little","Moderately", "Quite a bit","Extremely"]
+var panas_opt_arr=[]
+for (i=0; i<20; i++) {
+  panas_opt_arr.push(panas_opts)
+}
+
+    var PANAS_block = {
+      type: 'AJDsurvey',
+      questions: [ "Interested", "Distressed","Excited","Upset","Strong","Guilty", "Scared", "Hostile",
+      "Enthusiastic","Proud","Irritable","Alert","Ashamed","Inspired","Nervous","Determined","Attentive","Jittery",
+      "Active","Afraid"],
+      options: panas_opt_arr,
+      horizontal: true,
+      preamble: "Please indicate the extent you have felt this way over the past week"
+    };
+
+var gad_opts=["Not at all","Several Days", "More than half the days","Nearly every day"]
+var gad_opt_arr=[]
+for (i=0; i < 7; i++){
+gad_opt_arr.push(gad_opts)
+}
+    var GAD_block = {
+      type: 'AJDsurvey',
+      questions: ["Feeling nervous, anxious or on edge?","Not being able to stop or control worrying?",
+      "Worrying too much about different things?","Trouble relaxing?","Being so restless that it is hard to sit still?",
+      "Becoming easily annoyed or irritable?","Feeling afraid as if something awful might happen?"],
+      options: gad_opt_arr,
+      horizontal : true,
+      preamble: "Over the last 2 weeks, how often have you been bothered by any of the following problems?"
+    };
+    /* Define random code block */
+    var randomCode_block = {
+      type: "AJDrandom-code",
+      randomCode: getRandomCode
+    };
+
+    
+    /* define test block */
+    var test_block = {
+      type: 'AJDquestion',
+      labels: ['Completely Disagree', 'Neither Agree nor Disagree',
+              'Completely Agree'],
+      timing_first_stim: -1,
+      question: getCurrentQuestionID,
+      on_finish: function (data){
+        responseFavour = data.statementResponse;
+      }
+    };
+    
+    var Likert_questions = ["hopeful?", "fearful?"];
+    var state_questions=["How confident do you feel about the strength of your belief?",
+    "How much knowledge do you already have on the topic of the previous statement?",
+    "To what extent does this topic make you feel emotional?",
+    "To what extent is the topic in the previous statement relevant or important to you?"];
+
+    var quant_scale=["None","A little", "Quite a lot","Very much"];
+    var scale_1 = ["Not at all", "Slightly", "Moderately", "Very Much"];
+
+    var likert_block_1 = {
+        type: 'survey-likert',
+        questions: state_questions,
+        question: getCurrentQuestionID,
+        labels: [scale_1,quant_scale,scale_1,scale_1],
+    };
+
+    var likert_block_2 = {
+        type: 'survey-likert',
+        questions: Likert_questions,
+        labels: [scale_1, scale_1],
+        question: getCurrentQuestionID,
+        preamble: "When considering this statement, to what extent did you feel.."
+    };
+
+    var news_block = {
+      type: 'AJDnews',
+      currentQuestion: getCurrentQuestionID,
+      responseFavour: getResponseFavour,
+      showNews: true
+    };
+
+    var incrementBlock = {
+        type: 'call-function',
+        func: incrementCurrentQuestion
+    };
+
+    var biasBlock = {
+      type: 'AJDbias-rating',
+    };
+
+    var singleQuestionBlock = {
+      type: 'type',
+      text: 'some text',
+      timeline: [test_block, likert_block_1,likert_block_2, news_block, test_block, incrementBlock]
+    };
+
+    var testQuestionBlock = {
+      timeline: [test_block, news_block, incrementBlock]
+    };
+
+
+    var endOfPart1 = {
+      type: 'AJDseparator',
+      text: 'Part 1'
+    };
+
+    var endOfPart2 = {
+      type: 'AJDseparator',
+      text: 'Part 2'
+    };
+
+    var endOfPart3 = {
+      type: 'AJDseparator',
+      text: 'All parts'
+    };
+
+
+
+    /* TIMELINE */
+    timeline.push(instruction_block_part1);
+    timeline.push(testQuestionBlock)
+    timeline.push(instruction_block_part2)
+    for (var i=0; i < 16; i++){
+      timeline.push(singleQuestionBlock);
+    }
+    timeline.push(biasBlock)
+    timeline.push(endOfPart1);
+    timeline.push(instruction_block_part3);
+    timeline.push(GAD_block);
+    timeline.push(LOTR_block);
+    timeline.push(PANAS_block);
+    timeline.push(endOfPart3);
+    timeline.push(randomCode_block);
+
+    /* start the experiment */
+    jsPsych.init({
+      display_element: $('#jspsych-target'),
+      timeline: timeline,
+      on_finish: function() {
+        saveData(jsPsych.data.dataAsJSON(), randomCode);
+        //jsPsych.data.displayData();
+      }
+    });
+    </script>
+  </html>
